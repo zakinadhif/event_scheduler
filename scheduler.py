@@ -31,9 +31,8 @@ class Scheduler:
             self._event_queue.clear()
 
     def subscribe(self, group, callback):
-        logging.info(f"Scheduler: {self.subscriber_count} subscribed.")
-
         with self._mutex:
+            logging.info(f"Scheduler: {self.subscriber_count} subscribed.")
             subscriber = Subscription(group, callback, self.subscriber_count)
             self._subscribers.append(subscriber)
             self.subscriber_count += 1

@@ -30,12 +30,11 @@ class Subscriber:
         self.subscription_ids[scheduler].append(id)
 
     def _unsubscribe_all(self):
-        for scheduler, ids in self.subscription_ids:
+        for scheduler, ids in self.subscription_ids.items():
             for id in ids:
                 scheduler.unsubscribe(id)
 
     def __del__(self):
-        print("Destructed.")
         if not self.subscription_ids:
             return
 

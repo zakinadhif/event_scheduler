@@ -1,6 +1,7 @@
 from threading import Thread
 
 import logging
+import time
 
 import scheduler
 import printer
@@ -31,7 +32,11 @@ if __name__ == "__main__":
     scheduler_thread.start()
     printer_thread.start()
 
-    systray.start(main_scheduler)
+    #systray.start(main_scheduler)
+    main_scheduler.publish("printer", "print", ["Bwaa"])
+    main_scheduler.publish("printer", "print", ["Waa"])
+    time.sleep(2)
+    main_scheduler.publish("flow_control", "terminate", [])
 
     logging.info("Main: wait for the thread to finish")
 
