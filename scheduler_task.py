@@ -1,10 +1,11 @@
 from scheduler import Scheduler
-from subscriber import Subscriber
+from subscriber import get_subscriber, use_subscriber
 
 import time
 
-def scheduler_task(scheduler: Scheduler):
-    task_subscriber = Subscriber()
+@use_subscriber
+def scheduler_task(scheduler: Scheduler, **kwargs):
+    task_subscriber = get_subscriber(kwargs)
 
     task_subscriber.subscribe_into("flow_control", scheduler)
 
