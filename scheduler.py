@@ -44,6 +44,7 @@ class Scheduler:
             self._event_queue.append(Event(name, group, arguments))
 
     def unsubscribe(self, id):
+        # TODO(zndf): Check if id points to a valid subscription.
         logging.info(f"Scheduler: {id} unsubscribed.")
         with self._mutex:
             if self._subscribers:
