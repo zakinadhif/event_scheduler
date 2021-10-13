@@ -1,12 +1,14 @@
-from subscriber import Subscriber
+from subscriber import Subscriber, use_subscriber, get_subscriber
 from scheduler import Scheduler
 import time
 
-def printer_task(scheduler: Scheduler):
-    task_subscriber = Subscriber()
+@use_subscriber
+def printer_task(scheduler: Scheduler, **kwargs):
+    task_subscriber = get_subscriber(kwargs)
 
-    task_subscriber.subscribe_into("printer", scheduler)
-    task_subscriber.subscribe_into("flow_control", scheduler)
+    task_subscriber.set_default_scheduler(scheduler)
+    task_subscriber.subscribe_into("printer")
+    task_subscriber.subscribe_into("flow_control")
 
     while True:
         task = task_subscriber.poll_event()
@@ -20,5 +22,3 @@ def printer_task(scheduler: Scheduler):
 
         if task.name == "terminate":
             break
-
-    del task_subscriber
