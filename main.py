@@ -33,9 +33,6 @@ if __name__ == "__main__":
     printer_thread.start()
 
     systray.start(main_scheduler)
-    main_scheduler.publish("printer", "print", ["Bwaa"])
-    main_scheduler.publish("printer", "print", ["Waa"])
-    time.sleep(2)
     main_scheduler.publish("flow_control", "terminate", [])
 
     logging.info("Main: wait for the thread to finish")
