@@ -2,8 +2,6 @@ import logging
 from scheduler import Scheduler
 from subscriber import get_subscriber, use_subscriber
 
-import time
-
 @use_subscriber
 def scheduler_task(scheduler: Scheduler, **kwargs):
     task_subscriber = get_subscriber(kwargs)

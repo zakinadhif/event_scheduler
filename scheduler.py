@@ -32,14 +32,20 @@ class Scheduler:
             self._event_queue.clear()
 
     def wait_and_distribute_events(self, timeout: float = None):
+        logging.debug(f"Scheduler: {id(self)} is about to wait for incoming events")
+
         if self._event_queue:
+            logging.debug(f"Scheduler: {id(self)} is going to distribute events without waiting")
             return self.distribute_events()
         else:
+            logging.debug(f"Scheduler: {id(self)} is waiting for incoming events")
             with self._publish_condition:
                 if self._publish_condition.wait(timeout):
                     assert self._event_queue, "_event_queue is empty, yet publish_condition indicates otherwise"
+                    logging.debug(f"Scheduler: {id(self)} recieved some events after waiting, distributing")
                     return self.distribute_events()
                 else:
+                    logging.debug(f"Scheduler: {id(self)} stopped waiting because of time out, returning none")
                     return None
 
     def subscribe(self, group, callback):
