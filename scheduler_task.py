@@ -11,13 +11,10 @@ def scheduler_task(scheduler: Scheduler, **kwargs):
     task_subscriber.subscribe_into("flow_control", scheduler)
 
     while True:
-        if scheduler._event_queue:
-            scheduler.distribute_events()
+        scheduler.wait_and_distribute_events()
 
         task = task_subscriber.poll_event()
 
         if task is not None and task.name == "terminate_scheduler":
             logging.debug(f"SchedulerTask: Got a terminate scheduler event. Terminating.")
             break;
-
-        time.sleep(0.2)
