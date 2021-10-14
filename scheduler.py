@@ -1,5 +1,5 @@
 import logging
-from threading import Lock
+from threading import Lock, Condition
 
 class Event:
     def __init__(self, name, group, arguments = []):
@@ -19,6 +19,7 @@ class Scheduler:
         self._subscribers = []
 
         self._mutex = Lock()
+        self._publish_condition = Condition(Lock())
 
         self.subscriber_count = 0
 
@@ -29,6 +30,17 @@ class Scheduler:
                     if subscriber.group == event.group:
                         subscriber.callback(event)
             self._event_queue.clear()
+
+    def wait_and_distribute_events(self, timeout: float = None):
+        if self._event_queue:
+            return self.distribute_events()
+        else:
+            with self._publish_condition:
+                if self._publish_condition.wait(timeout):
+                    assert self._event_queue, "_event_queue is empty, yet publish_condition indicates otherwise"
+                    return self.distribute_events()
+                else:
+                    return None
 
     def subscribe(self, group, callback):
         with self._mutex:
@@ -42,6 +54,9 @@ class Scheduler:
     def publish(self, group, name, arguments):
         with self._mutex:
             self._event_queue.append(Event(name, group, arguments))
+
+        with self._publish_condition:
+            self._publish_condition.notify_all()
 
     def unsubscribe(self, id):
         # TODO(zndf): Check if id points to a valid subscription.
