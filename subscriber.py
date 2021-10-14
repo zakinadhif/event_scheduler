@@ -1,7 +1,8 @@
+import logging
 from scheduler import Scheduler, Event
 
 from typing import Optional
-from threading import Lock
+from threading import Lock, Condition
 import functools
 
 
@@ -10,6 +11,7 @@ class Subscriber:
         self.event_queue = []
         self.subscription_ids = {}
         self.mutex = Lock()
+        self.read_condition = Condition(Lock())
         return self
 
     def __exit__(self, *exc):
@@ -23,6 +25,25 @@ class Subscriber:
             if self.event_queue:
                 return self.event_queue.pop()
         return None
+
+    def wait_event(self, timeout = None) -> Optional[Event]:
+        logging.debug(f"Subscriber: {id(self)} is about to wait for an event")
+
+        event = self.poll_event()
+
+        if event:
+            logging.debug(f"Subscriber: {id(self)} is going to return an event without waiting")
+            return event
+        else:
+            logging.debug(f"Subscriber: {id(self)} is waiting for an event")
+            with self.read_condition:
+                if self.read_condition.wait(timeout):
+                    assert self.event_queue, "event_queue is empty, yet read_condition indicates otherwise"
+                    logging.debug(f"Subscriber: {id(self)} retrieved an event after waiting, returning event")
+                    return self.poll_event()
+                else:
+                    logging.debug(f"Subscriber: {id(self)} stopped waiting because of time out, returning none")
+                    return None
 
     def set_default_scheduler(self, scheduler: Scheduler) -> None:
         self.default_scheduler = scheduler
@@ -42,6 +63,9 @@ class Subscriber:
     def _add_event_to_queue(self, event: Event) -> None:
         with self.mutex:
             self.event_queue.append(event)
+
+        with self.read_condition:
+            self.read_condition.notify_all()
 
     def _append_into_subscription_list(self, id: int, scheduler: Scheduler) -> None:
         if self.subscription_ids.get(scheduler) is None:
